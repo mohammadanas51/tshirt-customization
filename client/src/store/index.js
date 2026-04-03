@@ -14,18 +14,8 @@ const state = proxy({
       scale: 0.15,
       side: "front",
     },
-    {
-      id: "default-text",
-      type: "text",
-      content: "Your Text",
-      position: [0, -0.04, 0.15],
-      rotation: [0, 0, 0],
-      scale: 0.3,
-      color: "#000000",
-      side: "front",
-    },
   ],
-  selectedDecalId: "default-text",
+  selectedDecalId: "default-logo",
   isDragging: false,
 });
 
