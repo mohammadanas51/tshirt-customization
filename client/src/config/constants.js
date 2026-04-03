@@ -1,17 +1,17 @@
-import { swatch, fileIcon, ai, logoShirt, stylishShirt } from "../assets";
+import { swatch3d, file3d, text3d, logoShirt, stylishShirt } from "../assets";
 
 export const EditorTabs = [
   {
     name: "colorpicker",
-    icon: swatch,
+    icon: swatch3d,
   },
   {
     name: "filepicker",
-    icon: fileIcon,
+    icon: file3d,
   },
   {
-    name: "aipicker",
-    icon: ai,
+    name: "textpicker",
+    icon: text3d,
   },
 ];
 
@@ -21,18 +21,38 @@ export const FilterTabs = [
     icon: logoShirt,
   },
   {
+    name: "logoShirtBack",
+    icon: logoShirt,
+  },
+  {
     name: "stylishShirt",
     icon: stylishShirt,
+  },
+  {
+    name: "textShirt",
+    icon: text3d,
+  },
+  {
+    name: "textShirtBack",
+    icon: text3d,
   },
 ];
 
 export const DecalTypes = {
   logo: {
     stateProperty: "logoDecal",
-    filterTab: "logoShirt",
+    filterProperty: "isLogoTexture",
   },
-  full: {
-    stateProperty: "fullDecal",
-    filterTab: "stylishShirt",
+  logoBack: {
+    stateProperty: "logoDecalBack",
+    filterProperty: "isLogoTextureBack",
+  },
+  text: {
+    stateProperty: "textContent",
+    filterProperty: "isTextTexture",
+  },
+  textBack: {
+    stateProperty: "textContentBack",
+    filterProperty: "isTextTextureBack",
   },
 };

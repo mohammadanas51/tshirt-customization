@@ -12,9 +12,9 @@ const Backdrop = () => {
       temporal
       frames={60}
       alphaTest={0.85}
-      scae={10}
+      scale={10}
       rotation={[Math.PI / 2, 0, 0]}
-      position={[0, 0, -0.14]}
+      position={[0, 0, -0.25]}
     >
       <RandomizedLight 
         amount={4}

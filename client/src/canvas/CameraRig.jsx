@@ -15,24 +15,28 @@ const CameraRig = ({ children }) => {
 
     // set the initial position of the model
     let targetPosition = [-0.4, 0, 2];
-    if(snap.intro) {
-      if(isBreakpoint) targetPosition = [0, 0, 2];
-      if(isMobile) targetPosition = [0, 0.2, 2.5];
+    if (snap.intro) {
+      if (isBreakpoint) targetPosition = [0, 0, 2];
+      if (isMobile) targetPosition = [0, 0.2, 2.5];
+
+      // set model camera position
+      easing.damp3(state.camera.position, targetPosition, 0.25, delta)
+
+      // set the model rotation smoothly
+      easing.dampE(
+        group.current.rotation,
+        [state.pointer.y / 10, -state.pointer.x / 5, 0],
+        0.25,
+        delta
+      )
     } else {
-      if(isMobile) targetPosition = [0, 0, 2.5]
+      if (isMobile) targetPosition = [0, 0, 2.5]
       else targetPosition = [0, 0, 2];
+
+      // We only damp the position initially when moving into the customizer,
+      // but once the user starts orbiting, this might cause tension.
+      // However, usually R3F/drei OrbitControls handles this by being in the same scene.
     }
-
-    // set model camera position
-    easing.damp3(state.camera.position, targetPosition, 0.25, delta)
-
-    // set the model rotation smoothly
-    easing.dampE(
-      group.current.rotation,
-      [state.pointer.y / 10, -state.pointer.x / 5, 0],
-      0.25,
-      delta
-    )
   })
 
 

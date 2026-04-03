@@ -6,23 +6,17 @@ import config from '../config/config';
 import state from '../store';
 import { download } from '../assets';
 import { downloadCanvasToImage, reader } from '../config/helpers';
-import { EditorTabs, FilterTabs, DecalTypes } from '../config/constants';
+import { EditorTabs, DecalTypes } from '../config/constants';
 import { fadeAnimation, slideAnimation } from '../config/motion';
-import { AIPicker, ColorPicker, CustomButton, FilePicker, Tab } from '../components';
+import { ColorPicker, CustomButton, FilePicker, Tab, TextPicker } from '../components';
 
 const Customizer = () => {
   const snap = useSnapshot(state);
 
   const [file, setFile] = useState('');
 
-  const [prompt, setPrompt] = useState('');
-  const [generatingImg, setGeneratingImg] = useState(false);
-
   const [activeEditorTab, setActiveEditorTab] = useState("");
-  const [activeFilterTab, setActiveFilterTab] = useState({
-    logoShirt: true,
-    stylishShirt: false,
-  })
+
 
   // show tab content depending on the activeTab
   const generateTabContent = () => {
@@ -35,77 +29,32 @@ const Customizer = () => {
           setFile={setFile}
           readFile={readFile}
         />
-      case "aipicker":
-        return <AIPicker 
-          prompt={prompt}
-          setPrompt={setPrompt}
-          generatingImg={generatingImg}
-          handleSubmit={handleSubmit}
-        />
+      case "textpicker":
+        return <TextPicker />
       default:
         return null;
     }
   }
 
-  const handleSubmit = async (type) => {
-    if(!prompt) return alert("Please enter a prompt");
-
-    try {
-      setGeneratingImg(true);
-
-      const response = await fetch('http://localhost:8080/api/v1/dalle', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          prompt,
-        })
-      })
-
-      const data = await response.json();
-
-      handleDecals(type, `data:image/png;base64,${data.photo}`)
-    } catch (error) {
-      alert(error)
-    } finally {
-      setGeneratingImg(false);
-      setActiveEditorTab("");
-    }
-  }
-
   const handleDecals = (type, result) => {
-    const decalType = DecalTypes[type];
+    const isBack = type.toLowerCase().includes('back');
+    const isLogo = type.toLowerCase().includes('logo');
 
-    state[decalType.stateProperty] = result;
+    const newDecal = {
+      id: Date.now().toString(),
+      type: isLogo ? 'logo' : 'text',
+      content: result,
+      // Apply a small random offset so multiple decals don't overlap perfectly
+      position: isBack
+        ? [Math.random() * 0.1 - 0.05, 0.04, -0.15]
+        : [Math.random() * 0.1 - 0.05, 0.04, 0.15],
+      rotation: isBack ? [0, Math.PI, 0] : [0, 0, 0],
+      scale: isLogo ? 0.15 : 0.3,
+      side: isBack ? 'back' : 'front',
+      color: state.color
+    };
 
-    if(!activeFilterTab[decalType.filterTab]) {
-      handleActiveFilterTab(decalType.filterTab)
-    }
-  }
-
-  const handleActiveFilterTab = (tabName) => {
-    switch (tabName) {
-      case "logoShirt":
-          state.isLogoTexture = !activeFilterTab[tabName];
-        break;
-      case "stylishShirt":
-          state.isFullTexture = !activeFilterTab[tabName];
-        break;
-      default:
-        state.isLogoTexture = true;
-        state.isFullTexture = false;
-        break;
-    }
-
-    // after setting the state, activeFilterTab is updated
-
-    setActiveFilterTab((prevState) => {
-      return {
-        ...prevState,
-        [tabName]: !prevState[tabName]
-      }
-    })
+    state.decals.push(newDecal);
   }
 
   const readFile = (type) => {
@@ -115,6 +64,21 @@ const Customizer = () => {
         setActiveEditorTab("");
       })
   }
+
+  const tabContainerRef = React.useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (tabContainerRef.current && !tabContainerRef.current.contains(event.target)) {
+        setActiveEditorTab("");
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   return (
     <AnimatePresence>
@@ -126,9 +90,12 @@ const Customizer = () => {
             {...slideAnimation('left')}
           >
             <div className="flex items-center min-h-screen">
-              <div className="editortabs-container tabs">
+              <div 
+                ref={tabContainerRef}
+                className="editortabs-container tabs"
+              >
                 {EditorTabs.map((tab) => (
-                  <Tab 
+                  <Tab
                     key={tab.name}
                     tab={tab}
                     handleClick={() => setActiveEditorTab(tab.name)}
@@ -144,28 +111,14 @@ const Customizer = () => {
             className="absolute z-10 top-5 right-5"
             {...fadeAnimation}
           >
-            <CustomButton 
+            {/* <CustomButton
               type="filled"
               title="Go Back"
               handleClick={() => state.intro = true}
               customStyles="w-fit px-4 py-2.5 font-bold text-sm"
-            />
+            /> */}
           </motion.div>
 
-          <motion.div
-            className='filtertabs-container'
-            {...slideAnimation("up")}
-          >
-            {FilterTabs.map((tab) => (
-              <Tab
-                key={tab.name}
-                tab={tab}
-                isFilterTab
-                isActiveTab={activeFilterTab[tab.name]}
-                handleClick={() => handleActiveFilterTab(tab.name)}
-              />
-            ))}
-          </motion.div>
         </>
       )}
     </AnimatePresence>

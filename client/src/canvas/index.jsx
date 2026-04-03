@@ -1,27 +1,49 @@
+import React, { Suspense } from 'react'
 import { Canvas } from '@react-three/fiber'
-import { Environment, Center } from '@react-three/drei';
+import { Environment, Center, OrbitControls } from '@react-three/drei';
+import { useSnapshot } from 'valtio';
 
+import state from '../store';
 import Shirt from './Shirt';
 import Backdrop from './Backdrop';
 import CameraRig from './CameraRig';
 
 const CanvasModel = () => {
+  const snap = useSnapshot(state);
+
   return (
     <Canvas
       shadows
-      camera={{ position: [0, 0, 0], fov: 25 }}
+      camera={{ position: [0, 0, 2], fov: 25 }}
       gl={{ preserveDrawingBuffer: true }}
+      frameloop="always"
       className="w-full max-w-full h-full transition-all ease-in"
     >
+      <color attach="background" args={["#ffffff"]} />
       <ambientLight intensity={0.5} />
-      <Environment preset="city" />
+      <directionalLight position={[0, 0, 5]} intensity={1} />
+      <directionalLight position={[0, 0, -5]} intensity={0.5} />
 
-      <CameraRig>
-        <Backdrop />
-        <Center>
-          <Shirt />
-        </Center>
-      </CameraRig>
+      <Suspense fallback={null}>
+        <Environment files="/potsdamer_platz_1k.hdr" />
+
+        <CameraRig>
+          <Backdrop />
+          <Center>
+            <Shirt />
+          </Center>
+        </CameraRig>
+
+        {!snap.intro && (
+          <OrbitControls
+            enablePan={false}
+            enableZoom={true}
+            minDistance={1.5}
+            maxDistance={3.5}
+            enabled={!snap.isDragging}
+          />
+        )}
+      </Suspense>
     </Canvas>
   )
 }
