@@ -10,8 +10,10 @@ const TextPicker = () => {
   const [textInput, setTextInput] = React.useState('New Text');
   const [colorInput, setColorInput] = React.useState('#000000');
 
-  // Find currently selected text decal
-  const selectedDecal = state.decals.find(d => d.id === snap.selectedDecalId && d.type === 'text');
+  // Find currently selected text decal using snap for reactive reading
+  const snapSelectedDecal = snap.decals.find(d => d.id === snap.selectedDecalId && d.type === 'text');
+  // Find in state for mutation
+  const stateSelectedDecal = state.decals.find(d => d.id === snap.selectedDecalId && d.type === 'text');
 
   const handleAddText = () => {
     const id = Date.now().toString();
@@ -33,12 +35,20 @@ const TextPicker = () => {
 
   const handleUpdateText = (value) => {
     setTextInput(value);
-    if (selectedDecal) selectedDecal.content = value;
+    if (stateSelectedDecal) stateSelectedDecal.content = value;
   };
 
   const handleUpdateColor = (color) => {
     setColorInput(color.hex);
-    if (selectedDecal) selectedDecal.color = color.hex;
+    if (stateSelectedDecal) stateSelectedDecal.color = color.hex;
+  };
+
+  const handleUpdateScale = (value) => {
+    const scale = parseFloat(value);
+    const decal = state.decals.find(d => d.id === snap.selectedDecalId && d.type === 'text');
+    if (decal) {
+      decal.scale = scale;
+    }
   };
 
   const handleDelete = (id) => {
@@ -64,11 +74,11 @@ const TextPicker = () => {
       </div>
 
       <p className="text-gray-700 text-xs font-bold mb-1">
-        {selectedDecal ? (
+        {snapSelectedDecal ? (
           <span className="flex justify-between items-center w-full">
             Edit Selection 
             <span className="text-[10px] bg-blue-500 text-white px-1.5 py-0.5 rounded-sm uppercase tracking-wider">
-              {selectedDecal.side}
+              {snapSelectedDecal.side}
             </span>
           </span>
         ) : 'New Text Content'}
@@ -77,19 +87,39 @@ const TextPicker = () => {
         className="w-full bg-white/50 border border-gray-200 rounded-md p-1.5 mb-3 text-sm outline-none focus:border-blue-400"
         type="text"
         placeholder="Type here..."
-        value={selectedDecal ? selectedDecal.content : textInput}
+        value={snapSelectedDecal ? snapSelectedDecal.content : textInput}
         onChange={(e) => handleUpdateText(e.target.value)}
       />
 
       <p className="text-gray-700 text-xs font-bold mb-1">
-        {selectedDecal ? 'Edit Selection Color' : 'New Text Color'}
+        {snapSelectedDecal ? 'Edit Selection Color' : 'New Text Color'}
       </p>
       <div className="flex flex-col gap-3 mb-4">
         <SketchPicker
-          color={selectedDecal ? selectedDecal.color : colorInput}
+          color={snapSelectedDecal ? snapSelectedDecal.color : colorInput}
           disableAlpha
           onChange={handleUpdateColor}
         />
+      </div>
+
+      <div className="mb-4">
+        <p className="text-gray-700 text-xs font-bold mb-1">
+          {snapSelectedDecal ? 'Adjust Size' : 'Default Size'}
+        </p>
+        <input 
+          type="range"
+          min="0.1"
+          max="1"
+          step="0.01"
+          className={`w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-500 ${!snapSelectedDecal ? 'opacity-50 cursor-not-allowed' : ''}`}
+          disabled={!snapSelectedDecal}
+          value={snapSelectedDecal ? snapSelectedDecal.scale : 0.3}
+          onChange={(e) => handleUpdateScale(e.target.value)}
+        />
+        <div className="flex justify-between text-[10px] text-gray-500 mt-1">
+          <span>Small</span>
+          <span>Large</span>
+        </div>
       </div>
 
       <button
