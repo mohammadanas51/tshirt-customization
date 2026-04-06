@@ -25,7 +25,7 @@ const FilePicker = ({ file, setFile, readFile }) => {
   return (
     <div className="filepicker-container max-h-[85vh] overflow-y-auto">
       <div className="flex-1 flex flex-col">
-        <input 
+        <input
           id="file-upload"
           type="file"
           accept="image/*"
@@ -41,15 +41,15 @@ const FilePicker = ({ file, setFile, readFile }) => {
       </div>
 
       <div className="mt-4 flex flex-wrap gap-2">
-        <CustomButton 
+        <CustomButton
           type="outline"
           title="Add Front Image"
           handleClick={() => readFile('logo')}
           customStyles="text-xs flex-1"
           color="#000"
         />
-        <CustomButton 
-          type="outline"  
+        <CustomButton
+          type="outline"
           title="Add Back Image"
           handleClick={() => readFile('logoBack')}
           customStyles="text-xs flex-1"
@@ -61,7 +61,7 @@ const FilePicker = ({ file, setFile, readFile }) => {
         <p className="text-gray-700 text-xs font-bold mb-1">
           {selectedDecal ? 'Adjust Image Size' : 'Default Image Size'}
         </p>
-        <input 
+        <input
           type="range"
           min="0.05"
           max="0.5"
@@ -81,8 +81,8 @@ const FilePicker = ({ file, setFile, readFile }) => {
         <p className="text-gray-700 text-xs font-bold mb-2">Manage Images</p>
         <div className="flex flex-col gap-2">
           {snap.decals.filter(d => d.type === 'logo').map((decal) => (
-            <div 
-              key={decal.id} 
+            <div
+              key={decal.id}
               onClick={() => state.selectedDecalId = decal.id}
               className={`flex items-center justify-between p-2 rounded-md cursor-pointer transition-all ${snap.selectedDecalId === decal.id ? 'bg-blue-100 border border-blue-400 font-bold' : 'bg-white/30 hover:bg-white/50'}`}
             >
@@ -91,7 +91,7 @@ const FilePicker = ({ file, setFile, readFile }) => {
                 <span className="text-[10px] truncate">Image </span>
                 <span className="text-[8px] uppercase text-gray-500">{decal.side}</span>
               </div>
-              <button 
+              <button
                 onClick={(e) => {
                   e.stopPropagation();
                   handleDelete(decal.id);

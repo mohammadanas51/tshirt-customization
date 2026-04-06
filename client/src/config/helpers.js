@@ -32,3 +32,23 @@ export const getContrastingColor = (color) => {
   // Return black or white depending on the brightness
   return brightness > 128 ? "black" : "white";
 };
+
+export const downloadDesignJSON = (state) => {
+  const designData = {
+    color: state.color,
+    decals: state.decals,
+    exportedAt: new Date().toISOString(),
+  };
+
+  const jsonString = JSON.stringify(designData, null, 2);
+  const blob = new Blob([jsonString], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+
+  link.href = url;
+  link.download = "tshirt_design.json";
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+};

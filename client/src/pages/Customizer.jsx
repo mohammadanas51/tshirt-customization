@@ -1,17 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useSnapshot } from 'valtio';
+import { useNavigate } from 'react-router-dom';
 
 import config from '../config/config';
 import state from '../store';
 import { download } from '../assets';
-import { downloadCanvasToImage, reader } from '../config/helpers';
+import { downloadCanvasToImage, reader, downloadDesignJSON } from '../config/helpers';
 import { EditorTabs, DecalTypes } from '../config/constants';
 import { fadeAnimation, slideAnimation } from '../config/motion';
 import { ColorPicker, CustomButton, FilePicker, Tab, TextPicker } from '../components';
 
 const Customizer = () => {
   const snap = useSnapshot(state);
+  const navigate = useNavigate();
 
   const [file, setFile] = useState('');
 
@@ -90,7 +92,7 @@ const Customizer = () => {
             {...slideAnimation('left')}
           >
             <div className="flex items-center min-h-screen">
-              <div 
+              <div
                 ref={tabContainerRef}
                 className="editortabs-container tabs"
               >
@@ -108,15 +110,23 @@ const Customizer = () => {
           </motion.div>
 
           <motion.div
-            className="absolute z-10 top-5 right-5"
+            className="absolute z-10 top-5 right-5 flex flex-col gap-3"
             {...fadeAnimation}
           >
-            {/* <CustomButton
+            <CustomButton
               type="filled"
-              title="Go Back"
-              handleClick={() => state.intro = true}
-              customStyles="w-fit px-4 py-2.5 font-bold text-sm"
-            /> */}
+              title="Export Design JSON"
+              handleClick={() => downloadDesignJSON(snap)}
+              customStyles="w-fit px-4 py-2.5 font-bold text-sm shadow-lg border border-white/20"
+              color="#00A8FF"
+            />
+            <CustomButton
+              type="filled"
+              title="Visualize Design"
+              handleClick={() => navigate('/reconstructDesign')}
+              customStyles="w-fit px-4 py-2.5 font-bold text-sm shadow-lg border border-white/20"
+              color="#00A8FF"
+            />
           </motion.div>
 
         </>

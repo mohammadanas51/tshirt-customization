@@ -17,6 +17,7 @@ const state = proxy({
   ],
   selectedDecalId: "default-logo",
   isDragging: false,
+  viewOnly: false,
 });
 
 export default state;

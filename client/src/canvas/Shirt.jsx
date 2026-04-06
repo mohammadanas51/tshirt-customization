@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect, useRef } from 'react'
+import React, { useMemo, useState, useEffect, useRef, Suspense, Component } from 'react'
 import { easing } from 'maath';
 import { useSnapshot } from 'valtio';
 import { useFrame } from '@react-three/fiber';
@@ -7,17 +7,66 @@ import * as THREE from 'three';
 
 import state from '../store';
 
+// Error Boundary to prevent a single failed texture (CORS or network) from crashing the mesh
+class DecalErrorBoundary extends Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
 
-const DecalItem = ({ decal }) => {
-  const texture = decal.type === 'logo' ? useTexture(decal.content) : null;
+  static getDerivedStateFromError(error) {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error("Decal loading error caught:", error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return this.props.fallback || null;
+    }
+    return this.props.children;
+  }
+}
+
+
+const LogoDecal = ({ decal }) => {
+  // Validate decal content to avoid crashing on truncated base64 strings
+  const isValidUrl = useMemo(() => {
+    if (!decal.content) return false;
+    if (decal.content.includes('...')) return false;
+    // Support local, external, and data URLs
+    return decal.content.startsWith('./') || 
+           decal.content.startsWith('http') || 
+           decal.content.startsWith('data:image');
+  }, [decal.content]);
+
+  // Only call useTexture if the URL is valid. 
+  // If invalid, we use a placeholder so the decal is still visible for layout verification.
+  const texture = useTexture(isValidUrl ? decal.content : './threejs.png');
   
-  // Persistent refs for canvas and texture to allow real-time updates for each instance
+  const scaleVal = decal.scale || 0.15;
+  const scale = [scaleVal, scaleVal, 0.1];
+
+  return (
+    <Decal 
+      position={decal.position} 
+      rotation={decal.rotation} 
+      scale={scale} 
+      map={texture} 
+      map-anisotropy={16} 
+      depthTest={false} 
+      depthWrite={true}
+    />
+  );
+}
+
+const TextDecal = ({ decal }) => {
   const canvasRef = useRef(document.createElement('canvas'));
-  const textureRef = useRef(new THREE.CanvasTexture(canvasRef.current));
+  const [texture, setTexture] = useState(null);
 
   useEffect(() => {
-    if (decal.type !== 'text') return;
-
     const canvas = canvasRef.current;
     canvas.width = 1024;
     canvas.height = 1024;
@@ -28,20 +77,24 @@ const DecalItem = ({ decal }) => {
     context.font = "Bold 150px Arial";
     context.textAlign = "center";
     context.textBaseline = "middle";
-    context.fillText(decal.content, canvas.width / 2, canvas.height / 2);
+    context.fillText(decal.content || '', canvas.width / 2, canvas.height / 2);
     
-    textureRef.current.needsUpdate = true;
-  }, [decal.content, decal.color, decal.type]);
+    const newTexture = new THREE.CanvasTexture(canvas);
+    newTexture.needsUpdate = true;
+    setTexture(newTexture);
+  }, [decal.content, decal.color]);
 
-  const map = decal.type === 'logo' ? texture : textureRef.current;
-  const scale = decal.scale || (decal.type === 'logo' ? 0.15 : 0.3);
+  if (!texture) return null;
+
+  const scaleVal = decal.scale || 0.3;
+  const scale = [scaleVal, scaleVal, 0.1];
 
   return (
     <Decal 
       position={decal.position} 
       rotation={decal.rotation} 
       scale={scale} 
-      map={map} 
+      map={texture} 
       map-anisotropy={16} 
       depthTest={false} 
       depthWrite={true}
@@ -58,6 +111,7 @@ const Shirt = () => {
   const [dragTargetId, setDragTargetId] = useState(null);
 
   const handlePointerDown = (e) => {
+    if (snap.viewOnly) return;
     e.stopPropagation();
 
     const clickPoint = e.point;
@@ -84,11 +138,13 @@ const Shirt = () => {
   };
 
   const handlePointerUp = () => {
+    if (snap.viewOnly) return;
     setDragTargetId(null);
     state.isDragging = false;
   };
 
   const handlePointerMove = (e) => {
+    if (snap.viewOnly) return;
     // 1. Update cursor based on hover
     const hoverPoint = e.point;
     let isHovering = false;
@@ -133,10 +189,23 @@ const Shirt = () => {
         onPointerOut={() => document.body.style.cursor = 'default'}
       >
         {snap.decals.map((decal) => (
-          <DecalItem
-            key={decal.id}
-            decal={decal}
-          />
+          decal.type === 'logo' ? (
+            <DecalErrorBoundary key={`${decal.id}-logo`} fallback={<LogoDecal decal={{...decal, content: './threejs.png'}} />}>
+              <Suspense fallback={null}>
+                <LogoDecal 
+                  decal={decal} 
+                />
+              </Suspense>
+            </DecalErrorBoundary>
+          ) : (
+            <DecalErrorBoundary key={`${decal.id}-text`} fallback={null}>
+              <Suspense fallback={null}>
+                <TextDecal 
+                  decal={decal} 
+                />
+              </Suspense>
+            </DecalErrorBoundary>
+          )
         ))}
       </mesh>
     </group>

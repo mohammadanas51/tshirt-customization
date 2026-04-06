@@ -60,14 +60,24 @@ const TextPicker = () => {
     <div className="absolute left-full ml-3 glassmorphism p-3 rounded-md w-[220px] max-h-[85vh] overflow-y-auto">
       <div className="flex gap-2 mb-4">
         <button
-          className={`flex-1 text-xs py-1 rounded-md ${target === 'front' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
-          onClick={() => setTarget('front')}
+          className={`flex-1 text-xs py-1 rounded-md ${target === 'front' ? 'bg-blue-500 text-white shadow-md' : 'bg-gray-200 text-gray-600'}`}
+          onClick={() => {
+            setTarget('front');
+            if (snapSelectedDecal && snapSelectedDecal.side !== 'front') {
+              state.selectedDecalId = null;
+            }
+          }}
         >
           Front
         </button>
         <button
           className={`flex-1 text-[10px] py-1 rounded-md transition-all ${target === 'back' ? 'bg-blue-500 text-white shadow-md' : 'bg-gray-200 text-gray-600'}`}
-          onClick={() => setTarget('back')}
+          onClick={() => {
+            setTarget('back');
+            if (snapSelectedDecal && snapSelectedDecal.side !== 'back') {
+              state.selectedDecalId = null;
+            }
+          }}
         >
           Back
         </button>
@@ -77,9 +87,18 @@ const TextPicker = () => {
         {snapSelectedDecal ? (
           <span className="flex justify-between items-center w-full">
             Edit Selection 
-            <span className="text-[10px] bg-blue-500 text-white px-1.5 py-0.5 rounded-sm uppercase tracking-wider">
-              {snapSelectedDecal.side}
-            </span>
+            <div className="flex items-center gap-1.5">
+              <span className="text-[10px] bg-blue-500 text-white px-1.5 py-0.5 rounded-sm uppercase tracking-wider">
+                {snapSelectedDecal.side}
+              </span>
+              <button 
+                onClick={() => state.selectedDecalId = null}
+                className="text-[10px] bg-gray-200 text-gray-600 px-1.5 py-0.5 rounded-sm hover:bg-red-100 hover:text-red-500 transition-colors"
+                title="Deselect to add new text"
+              >
+                ✕
+              </button>
+            </div>
           </span>
         ) : 'New Text Content'}
       </p>

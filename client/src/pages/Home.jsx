@@ -1,8 +1,10 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSnapshot } from 'valtio';
+import { useNavigate } from 'react-router-dom';
 
 import state from '../store';
 import { CustomButton } from '../components';
+import { downloadDesignJSON } from '../config/helpers';
 import {
   headContainerAnimation,
   headContentAnimation,
@@ -12,6 +14,7 @@ import {
 
 const Home = () => {
   const snap = useSnapshot(state);
+  const navigate = useNavigate();
 
   return (
     <AnimatePresence>
@@ -39,12 +42,28 @@ const Home = () => {
               Customize your T-shirt the way you want. <strong>Unleash your imagination</strong>{" "} and define your own style.
               </p>
 
-              <CustomButton 
-                type="filled"
-                title="Customize It"
-                handleClick={() => state.intro = false}
-                customStyles="w-fit px-4 py-2.5 font-bold text-sm"
-              />
+              <div className="flex flex-col gap-4 w-fit">
+                <CustomButton 
+                  type="filled"
+                  title="Customize It"
+                  handleClick={() => state.intro = false}
+                  customStyles="w-full px-8 py-3 font-bold text-sm shadow-md"
+                />
+
+                <CustomButton 
+                  type="outline"
+                  title="Export Design JSON"
+                  handleClick={() => downloadDesignJSON(snap)}
+                  customStyles="w-full px-8 py-3 font-bold text-sm border-gray-400"
+                />
+
+                <CustomButton 
+                  type="outline"
+                  title="Visualize Design"
+                  handleClick={() => navigate('/reconstructDesign')}
+                  customStyles="w-full px-8 py-3 font-bold text-sm border-blue-400 text-blue-600"
+                />
+              </div>
             </motion.div>
           </motion.div>
         </motion.section>
