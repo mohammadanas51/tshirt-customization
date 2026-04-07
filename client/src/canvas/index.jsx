@@ -28,7 +28,6 @@ const CanvasModel = () => {
         <Environment files="/potsdamer_platz_1k.hdr" />
 
         <CameraRig>
-          {!snap.viewOnly && !snap.intro && <Backdrop />}
           <Center>
             <Shirt />
           </Center>
