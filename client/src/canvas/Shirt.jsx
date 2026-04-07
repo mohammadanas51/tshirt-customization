@@ -31,6 +31,17 @@ class DecalErrorBoundary extends Component {
 }
 
 
+// Helper to bypass CORS for specific domains by using a proxy
+const getProxiedUrl = (url) => {
+  if (!url) return url;
+  if (url.includes('strackit.com')) {
+    // Using images.weserv.nl which is a dedicated free image proxy that supports CORS
+    // This avoids "Content-Type" restrictions found on other free proxies.
+    return `https://images.weserv.nl/?url=${encodeURIComponent(url)}`;
+  }
+  return url;
+};
+
 const LogoDecal = ({ decal }) => {
   // Validate decal content to avoid crashing on truncated base64 strings
   const isValidUrl = useMemo(() => {
@@ -42,9 +53,14 @@ const LogoDecal = ({ decal }) => {
            decal.content.startsWith('data:image');
   }, [decal.content]);
 
+  // Apply proxy if necessary to bypass CORS restrictions
+  const finalUrl = useMemo(() => {
+    return isValidUrl ? getProxiedUrl(decal.content) : './threejs.png';
+  }, [decal.content, isValidUrl]);
+
   // Only call useTexture if the URL is valid. 
   // If invalid, we use a placeholder so the decal is still visible for layout verification.
-  const texture = useTexture(isValidUrl ? decal.content : './threejs.png');
+  const texture = useTexture(finalUrl);
   
   const scaleVal = decal.scale || 0.15;
   const scale = [scaleVal, scaleVal, 0.1];
